@@ -16,4 +16,6 @@ export async function initDb() {
       created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
     );
   `;
+  
 }
+console.log('DATABASE_URL:', process.env.DATABASE_URL)

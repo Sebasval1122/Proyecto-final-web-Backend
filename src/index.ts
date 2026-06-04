@@ -23,7 +23,7 @@ app.get('/', (_req: Request, res: Response) => {
 
 app.use(errorHandler);
 
-const PORT = config.port;
+const PORT = process.env.PORT || 5000
 
 async function start() {
   try {
@@ -38,7 +38,21 @@ async function start() {
     process.exit(1);
   }
 }
+async function startServer() {
+  try {
+    console.log('DATABASE_URL:', process.env.DATABASE_URL)
 
-start();
+    await initDb()
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`)
+    })
+  } catch (error) {
+    console.error('Unable to start server:', error)
+    process.exit(1)
+  }
+}
+startServer()
+start()
 
 export default app;
