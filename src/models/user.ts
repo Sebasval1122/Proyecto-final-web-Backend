@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { sql } from '../db';
 
 export interface User {
   id: string;
@@ -8,18 +9,32 @@ export interface User {
   role: 'admin' | 'dealer' | 'user';
 }
 
-const users: User[] = [];
-
-export function createUser(email: string, passwordHash: string, name?: string, role: 'admin' | 'dealer' | 'user' = 'user'): User {
-  const user: User = { id: uuidv4(), email, passwordHash, name, role };
-  users.push(user);
-  return user;
+export async function createUser(email: string, passwordHash: string, name?: string, role: 'admin' | 'dealer' | 'user' = 'user'): Promise<User> {
+  const id = uuidv4();
+  const [user] = await sql<User[]>`
+    INSERT INTO users (id, email, password_hash, name, role)
+    VALUES (${id}, ${email}, ${passwordHash}, ${name || null}, ${role})
+    RETURNING id, email, password_hash AS "passwordHash", name, role
+  `;
+  return user as User;
 }
 
-export function findUserByEmail(email: string): User | undefined {
-  return users.find(u => u.email.toLowerCase() === email.toLowerCase());
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const [user] = await sql<User[]>`
+    SELECT id, email, password_hash AS "passwordHash", name, role
+    FROM users
+    WHERE LOWER(email) = LOWER(${email})
+    LIMIT 1
+  `;
+  return (user as User) ?? null;
 }
 
-export function findUserById(id: string): User | undefined {
-  return users.find(u => u.id === id);
+export async function findUserById(id: string): Promise<User | null> {
+  const [user] = await sql<User[]>`
+    SELECT id, email, password_hash AS "passwordHash", name, role
+    FROM users
+    WHERE id = ${id}
+    LIMIT 1
+  `;
+  return (user as User) ?? null;
 }

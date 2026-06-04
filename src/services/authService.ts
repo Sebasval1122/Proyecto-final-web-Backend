@@ -1,12 +1,13 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createUser, findUserByEmail, findUserById, User } from '../models/user';
+import { config } from '../config';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'please-change-me';
+const JWT_SECRET = config.jwtSecret;
 const TOKEN_EXPIRES_IN = '7d';
 
 export async function register(email: string, password: string, name?: string, role: 'admin' | 'dealer' | 'user' = 'user'): Promise<User> {
-  const existing = findUserByEmail(email);
+  const existing = await findUserByEmail(email);
   if (existing) throw new Error('User already exists');
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
@@ -14,7 +15,7 @@ export async function register(email: string, password: string, name?: string, r
 }
 
 export async function verifyCredentials(email: string, password: string): Promise<User | null> {
-  const user = findUserByEmail(email);
+  const user = await findUserByEmail(email);
   if (!user) return null;
   const ok = await bcrypt.compare(password, user.passwordHash);
   return ok ? user : null;
@@ -28,6 +29,6 @@ export function verifyToken(token: string): { sub: string; email: string; role?:
   return jwt.verify(token, JWT_SECRET) as { sub: string; email: string; role?: string };
 }
 
-export function getUserById(id: string): User | undefined {
+export async function getUserById(id: string): Promise<User | null> {
   return findUserById(id);
 }
