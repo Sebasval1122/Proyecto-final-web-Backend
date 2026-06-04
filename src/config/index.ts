@@ -4,7 +4,7 @@ dotenv.config();
 
 const databaseUrl = process.env.DATABASE_URL || (() => {
   const host = process.env.DB_HOST;
-  const port = process.env.DB_PORT || '5000';
+  const port = process.env.DB_PORT || '5432';
   const name = process.env.DB_NAME;
   const user = process.env.DB_USER;
   const password = process.env.DB_PASSWORD;
