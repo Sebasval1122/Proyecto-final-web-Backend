@@ -39,6 +39,27 @@ npm run dev
 # Luego abrir http://localhost:4000/api/health
 ```
 
+Autenticación (endpoints):
+
+- `POST /api/auth/register` - Body: `{ "email":"a@b.com", "password":"123456", "name":"Nombre" }` → devuelve `token` y `user`
+- `POST /api/auth/login` - Body: `{ "email":"a@b.com", "password":"123456" }` → devuelve `token` y `user`
+- `GET /api/auth/me` - Header: `Authorization: Bearer <token>` → devuelve `user`
+
+Recuerda copiar `.env.example` a `.env` y establecer `JWT_SECRET`.
+
+Autorización por roles:
+- Roles soportados: `admin`, `dealer`, `user`.
+- Middlewares:
+	- `requireAuth` - valida JWT y expone `userId` y `userRole` en la request.
+	- `requireRole(...)` - restringe el acceso a rutas según roles permitidos.
+
+Rutas de ejemplo protegidas:
+- `GET /api/protected/admin` - solo `admin`.
+- `GET /api/protected/dealer-area` - `admin` o `dealer`.
+- `GET /api/protected/profile` - cualquier usuario autenticado.
+
+Nota: en este scaffold los usuarios se guardan en memoria. Para producción conecta un DB y evita aceptar `role` en el registro sin autorización.
+
 Si quieres, puedo:
 - Añadir autenticación (JWT)
 - Conectar a una base de datos (MongoDB / PostgreSQL)
