@@ -1,5 +1,5 @@
 import postgres from 'postgres';
-import { config } from '../config';
+import { config } from '../../config';
 
 export const sql = postgres(config.databaseUrl, {
   ssl: { rejectUnauthorized: false }

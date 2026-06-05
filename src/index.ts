@@ -2,9 +2,9 @@ import express, { Request, Response } from 'express'
 import morgan from 'morgan'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import routes from './routes'
-import { errorHandler } from './middleware/errorHandler'
-import { initDb } from './db'
+import routes from './interface/routes'
+import { errorHandler } from './interface/middleware/ErrorHandler'
+import { initDb } from './infrastructure/database/postgres'
 
 dotenv.config()
 

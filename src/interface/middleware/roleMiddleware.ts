@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from './authMiddleware';
+import { AuthRequest } from './AuthMiddleware';
 
 export function requireRole(...allowedRoles: Array<'admin' | 'dealer' | 'user'>) {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
