@@ -34,7 +34,8 @@ export class AuthController {
       const result = await loginUser.execute(email, password);
       if (!result) return res.status(401).json({ error: 'Invalid credentials' });
       res.json(result);
-    } catch (err: any) {
+    } catch (err) {
+      console.error('Login error:', err);
       res.status(500).json({ error: 'Login failed' });
     }
   }

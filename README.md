@@ -1,66 +1,150 @@
-# Backend - Proyecto Final (TypeScript + Express)
+# Proyecto Final — Backend (TypeScript + Express)
 
-Estructura base del backend en TypeScript y Express para el proyecto final.
+Backend del proyecto DrivePoint: API REST en TypeScript con Express, PostgreSQL y JWT para la plataforma de compra, venta y alquiler de vehículos.
 
-Requisitos:
-- Node.js >= 16
-- npm o yarn
+## Stack
 
-Instalación:
+- **Runtime:** Node.js >= 20
+- **Framework:** Express 4
+- **Lenguaje:** TypeScript 5
+- **Base de datos:** PostgreSQL (client: `postgres`)
+- **Autenticación:** JWT (jsonwebtoken) + bcryptjs para hashes de contraseña
+- **Validación:** Zod
+- **Logging:** Morgan + logger interno
+
+## Instalación
 
 ```bash
 npm install
 ```
 
-Variables de entorno:
-- Copiar `.env.example` a `.env` y ajustar si es necesario.
+## Variables de entorno
 
-Comandos útiles:
+Copia `.env.example` a `.env` y ajusta los valores:
 
-- `npm run dev` - Ejecutar en modo desarrollo (ts-node-dev)
-- `npm run build` - Compilar TypeScript a `dist/`
-- `npm run start` - Ejecutar el build compilado
-- `npm run typecheck` - Comprobar tipos
+```bash
+# Servidor
+PORT=4000
+NODE_ENV=development
 
-Estructura creada:
+# Base de datos (PostgreSQL/Supabase)
+DATABASE_URL=postgresql://postgres:***@db.hwzmhhjrwxfowfokasaj.supabase.co:5432/postgres
 
-- `src/` - Código fuente TypeScript
-	- `src/index.ts` - Punto de entrada
-	- `src/routes/` - Definición de rutas
-	- `src/controllers/` - Controladores
-	- `src/middleware/` - Middlewares (p.ej. manejo de errores)
-	- `src/config/` - Configuración y dotenv
-	- `src/utils/` - Utilidades
+# Alternativa: variables individuales
+# DB_HOST=db.hwzmhhjrwxfowfokasaj.supabase.co
+# DB_PORT=5432
+# DB_NAME=postgres
+# DB_USER=postgres
+# DB_PASSWORD=tu_password_aqui
 
-Prueba rápida:
+# JWT
+JWT_SECRET=tu_clave_secreta_muy_larga_y_aleatoria
+```
+
+## Comandos
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Arranca el servidor en modo desarrollo (ts-node-dev) |
+| `npm run build` | Compila TypeScript a `dist/` |
+| `npm run start` | Ejecuta el build compilado |
+| `npm run typecheck` | Verifica tipos sin compilar |
+
+## API
+
+### Authentication
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Registra un nuevo usuario |
+| `POST` | `/api/auth/login` | Login y obtención de token |
+| `GET` | `/api/auth/me` | Perfil del usuario autenticado (Bearer token) |
+
+#### Ejemplos
+
+```bash
+curl -X POST http://localhost:4000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"a@b.com","password":"123456","name":"Nombre"}'
+
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"a@b.com","password":"123456"}'
+
+curl http://localhost:4000/api/auth/me \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+### Health checks
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Estado básico del servicio |
+| `GET` | `/api/health/ready` | Readiness: verifica conexión a DB |
+
+### Roles y autorización
+
+Roles soportados: `admin`, `dealer`, `user`.
+
+- `requireAuth` — valida JWT y expone `userId` y `userRole` en la request.
+- `requireRole(...)` — restringe acceso según roles permitidos.
+
+## Estructura del proyecto
+
+```
+src/
+├── index.ts                      # Punto de entrada
+├── config/index.ts               # Configuración (env, JWT, DB)
+├── application/
+│   ├── use-cases/                # Casos de uso (RegisterUser, LoginUser, GetUserById)
+│   ├── services/                 # Interfaces de servicios (ITokenService, IPasswordHasher)
+│   ├── dtos/                     # DTOs (UserDTO)
+│   └── interfaces/               # Entidades y repositorios (User, IUserRepository)
+├── domain/
+│   ├── entities/                 # User entity
+│   └── repositories/             # IUserRepository interface
+├── infrastructure/
+│   ├── database/
+│   │   ├── postgres.ts           # Pool postgres + initDb()
+│   │   └── repositories/         # PostgresUserRepository
+│   ├── security/
+│   │   ├── BcryptHasher.ts      # Hash de contraseñas
+│   │   └── JwtService.ts        # Generación y verificación de JWT
+│   └── utils/
+│       └── logger.ts             # Logger interno
+└── interface/
+    ├── routes/                   # Rutas (auth, health, protected)
+    ├── controllers/              # AuthController, HealthController
+    ├── middleware/               # requireAuth, requireRole, validate, errorHandler
+    └── validation/               # Zod schemas
+```
+
+## Notas de implementación
+
+- Código organizado con Clean Architecture (capas de dominio, aplicación, infraestructura, interfaz).
+- Uso de DTOs para la capa de presentación.
+- Manejo centralizado de errores vía `AppError` + `errorHandler`.
+- Pool de conexiones PostgreSQL con verificación de tablas en `initDb()`.
+- Health checks con verificación de conexión a DB (`/api/health/ready`).
+
+## Desarrollo
 
 ```bash
 npm run dev
-# Luego abrir http://localhost:4000/api/health
+# Abrir http://localhost:4000/api/health
 ```
 
-Autenticación (endpoints):
+Linting y typecheck:
 
-- `POST /api/auth/register` - Body: `{ "email":"a@b.com", "password":"123456", "name":"Nombre" }` → devuelve `token` y `user`
-- `POST /api/auth/login` - Body: `{ "email":"a@b.com", "password":"123456" }` → devuelve `token` y `user`
-- `GET /api/auth/me` - Header: `Authorization: Bearer <token>` → devuelve `user`
+```bash
+npm run typecheck     # Verificar tipos
+npx tsc --noEmit      # Comprobación estricta
+```
 
-Recuerda copiar `.env.example` a `.env` y establecer `JWT_SECRET`.
+## Próximos pasos
 
-Autorización por roles:
-- Roles soportados: `admin`, `dealer`, `user`.
-- Middlewares:
-	- `requireAuth` - valida JWT y expone `userId` y `userRole` en la request.
-	- `requireRole(...)` - restringe el acceso a rutas según roles permitidos.
-
-Rutas de ejemplo protegidas:
-- `GET /api/protected/admin` - solo `admin`.
-- `GET /api/protected/dealer-area` - `admin` o `dealer`.
-- `GET /api/protected/profile` - cualquier usuario autenticado.
-
-Nota: en este scaffold los usuarios se guardan en memoria. Para producción conecta un DB y evita aceptar `role` en el registro sin autorización.
-
-Si quieres, puedo:
-- Añadir autenticación (JWT)
-- Conectar a una base de datos (MongoDB / PostgreSQL)
-- Añadir tests y CI
+- Añadir tests unitarios (Vitest/Jest).
+- CI con GitHub Actions (lint + typecheck + build).
+- Migraciones de base de datos (p.ej. Flyway o knex).
+- Logs estructurados (pino/winston).
+- Rate limiting y CORS configurado explícitamente.

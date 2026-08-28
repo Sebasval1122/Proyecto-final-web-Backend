@@ -28,7 +28,7 @@ export async function initDb() {
       and table_type = 'BASE TABLE'
   `;
 
-  const existingTables = rows.map((row: any) => row.table_name);
+  const existingTables = rows.map((row) => (row as { table_name: string }).table_name);
   const missingTables = requiredTables.filter(
     (table) => !existingTables.includes(table)
   );

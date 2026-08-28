@@ -6,11 +6,11 @@ export class JwtService implements ITokenService {
   private readonly secret = config.jwtSecret;
   private readonly expiresIn = '7d';
 
-  generate(payload: any): string {
+  generate(payload: { sub: string; email: string; role: string }): string {
     return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn });
   }
 
-  verify(token: string): any {
-    return jwt.verify(token, this.secret);
+  verify(token: string): { sub: string; email: string; role: string } {
+    return jwt.verify(token, this.secret) as { sub: string; email: string; role: string };
   }
 }

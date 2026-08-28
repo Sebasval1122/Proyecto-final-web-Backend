@@ -1,7 +1,42 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+/build/
+
+# Environment files
 .env
-/.vscode
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+ts-node-dev.log*
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
 coverage/
-npm-debug.log
-yarn-error.log
+
+# Docker
+.docker/
+
+# Testing
+*.lcov

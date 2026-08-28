@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
+import { JwtService } from '../../infrastructure/security/JwtService';
 
 export class AppError extends Error {
   status: number;
@@ -12,12 +14,9 @@ export class AppError extends Error {
   }
 }
 
-export const errorHandler = (
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+type ErrHandler = (err: Error, req: Request, res: Response, next: NextFunction) => void;
+
+export const errorHandler: ErrHandler = (err, req, res, next) => {
   console.error(`[ERROR] ${req.method} ${req.originalUrl}`);
 
   if (err instanceof AppError) {
@@ -28,16 +27,14 @@ export const errorHandler = (
     });
   }
 
-  // Errores de validación (Zod, etc)
-  if (err.name === 'ValidationError' || err.name === 'ZodError') {
+  if (err instanceof ZodError) {
     return res.status(400).json({
       error: 'Datos de entrada inválidos',
-      details: err.errors || err.message,
+      details: err.errors,
       timestamp: new Date().toISOString()
     });
   }
 
-  // Errores de JWT
   if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
     return res.status(401).json({
       error: 'Token inválido o expirado',
@@ -45,8 +42,7 @@ export const errorHandler = (
     });
   }
 
-  // Errores de base de datos
-  if (err.code && err.code.startsWith('23')) {
+  if (isDatabaseError(err)) {
     return res.status(409).json({
       error: 'Conflicto en la base de datos',
       details: err.message,
@@ -54,10 +50,13 @@ export const errorHandler = (
     });
   }
 
-  // Error interno no operacional
   console.error('Error no operacional:', err);
   res.status(500).json({
     error: 'Error interno del servidor',
     timestamp: new Date().toISOString()
   });
 };
+
+function isDatabaseError(err: unknown): err is { code: string; message: string } {
+  return typeof err === 'object' && err !== null && 'code' in err && typeof (err as any).code === 'string' && (err as any).code.startsWith('23');
+}
